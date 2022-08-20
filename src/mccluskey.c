@@ -9,6 +9,10 @@ typedef struct {
     bool dont_care;
 } minterm_t;
 
+void free_minterm(minterm_t* minterm) {
+    free(minterm->array_ptr);
+}
+
 /* function to create a minterm from an int*/
 minterm_t create_minterm(int n, size_t num_signals, bool dc_flag) {
     /* 
@@ -68,12 +72,14 @@ int main(int argc, char* argv[]) {
        minterms[i - 1] = create_minterm(number, 4, false);
    };
 
-   for (int i = 0; i < num_minterms; i++){
+   for (int i = 0; i < num_minterms; i++) {
        printf("Minterm #%d: ", i);
        print_array(minterms[i].array_ptr, 4);
    };
    
+   for (int i = 0; i <num_minterms; i++) {
+       free_minterm(&minterms[i]);
+   }
    
-
     return 0;
 }
