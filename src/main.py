@@ -50,8 +50,8 @@ class minterm:
 
     def __str__(self):
         min_str = ''
-        for char in self.array:
-            min_str = min_str + str(char)
+        for i in range(len(self.array)-1, -1, -1):
+            min_str = min_str + str(self.array[i])
         return min_str
     
 
@@ -74,7 +74,9 @@ def group_minterms(minterms):
 test = minterm(4,4)
 print(minterm(4,4))
 
-minterm_list = [minterm(0,4), minterm(1,4), minterm(2,4), minterm(3,4), minterm(7,4), minterm(15,4)]
+minterm_list = [minterm(0,4), minterm(4,4), minterm(5,4), minterm(6,4), 
+                minterm(7,4), minterm(8,4), minterm(9,4), minterm(10,4), 
+                minterm(13,4), minterm(15,4)]
 
 print(group_minterms(minterm_list))
 
@@ -111,6 +113,8 @@ class implication_table:
                     if dif == 1:
                         print(f"adding dc to pos {dif_loc}")
                         new_minterms.append(term.add_dc(dif_loc))
+                        term.reduced_flag = 1
+                        adj_term.reduced_flag = 1
         return new_minterms
     
     def minimize_table(self):
@@ -127,9 +131,19 @@ class implication_table:
                 continue
             self.add_column(next_column)
             column_num = column_num + 1
+        for col in self.columns:
+            for group in col:
+                for term in group:
+                    if not term.reduced_flag:
+                        print(term)
     def __str__(self):
         table_str = ''
-        return 'hello'
+        for i, column in enumerate(self.columns):
+            table_str = table_str + str(column) + "\n"
+        return table_str
+    
+    def __repr__(self) -> str:
+        return str(self)
 
         
 
@@ -138,6 +152,9 @@ imp_table = implication_table(minterm_list)
 return_list = imp_table.check_minterm(0)
 print(return_list)
 print(imp_table)
+imp_table.minimize_table()
+print(imp_table)
+
 
 
 
