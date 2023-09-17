@@ -149,12 +149,80 @@ class implication_table:
         
 
 
-imp_table = implication_table(minterm_list)
-return_list = imp_table.check_minterm(0)
-print(return_list)
-print(imp_table)
-imp_table.minimize_table()
-print(imp_table)
+# imp_table = implication_table(minterm_list)
+# return_list = imp_table.check_minterm(0)
+# print(return_list)
+# print(imp_table)
+# imp_table.minimize_table()
+# print(imp_table)
+
+def create_matrix(prime_imps, minterms):
+    array = []
+    size = minterms[0].size
+    for i, term in enumerate(minterms):
+        array.append([])
+        for k, prime in enumerate(prime_imps):
+            mismatch = 0
+            for j in range(size):
+                if term.array[j] != prime.array[j] and prime.array[j] != '-':
+                    mismatch = 1
+            if mismatch == 0:
+                array[i].append(1)
+            else:
+                array[i].append('')
+    return array
+
+mins_list = [minterm(0, 3), minterm(2, 3), minterm(3,3), minterm(7, 3), minterm(4, 3)]
+primes_list = [minterm(['-', 1, 0], 3, 'arr'), minterm([0, '-', 0], 3, 'arr'), 
+               minterm([0, 0, '-'], 3, 'arr'), minterm([1, 1, '-'], 3, 'arr')]
+
+print(create_matrix(primes_list, mins_list))
+
+
+class min_cover_matrix:
+    def __init__(self, prime_imps, minterms):
+        self.num_cols = len(prime_imps)
+        self.num_rows = len(minterms)
+        self.matrix = create_matrix(prime_imps, minterms)
+        self.essential_primes = []
+        self.empty = 0
+
+    def remove_row(self, index):
+        self.matrix.pop(index)
+        self.num_rows = self.num_rows - 1
+        if self.num_rows == 0:
+            self.empty = 1
+    
+    def remove_column(self, index):
+        for i in range(self.num_rows):
+            self.matrix[i].pop(index)
+        self.num_cols = self.num_cols - 1
+        if self.num_cols == 0:
+            self.empty = 1
+
+    def __str__(self):
+        matrix_str = ''
+        for row in self.matrix:
+            
+            for element in row:
+                if element == '':
+                    matrix_str = matrix_str + '_'
+                else:
+                    matrix_str = matrix_str + '1'
+                matrix_str = matrix_str + ' '
+            matrix_str = matrix_str + "\n"
+        return matrix_str
+
+test_mat = min_cover_matrix(primes_list, mins_list)
+print(test_mat)
+test_mat.remove_row(0)
+print(test_mat)
+test_mat.remove_row(0)
+print(test_mat)
+test_mat.remove_row(0)
+print(test_mat)
+test_mat.remove_row(0)
+print(test_mat)
 
 
 
