@@ -1,3 +1,5 @@
+from tabulate import tabulate
+
 
 def num_to_bin_array(num, size):
     """Return an array corresponding to the binary representation of a number.
@@ -71,25 +73,27 @@ def group_minterms(minterms):
         array[group].append(term)
     return array
 
-test = minterm(4,4)
-print(minterm(4,4))
 
 minterm_list = [minterm(0,4), minterm(4,4), minterm(5,4), minterm(6,4), 
                 minterm(7,4), minterm(8,4), minterm(9,4), minterm(10,4), 
                 minterm(13,4), minterm(15,4)]
 
-print(group_minterms(minterm_list))
-
 # implication table object
 class implication_table:
-    def __init__(self, minterms):
+    def __init__(self, minterms, print_steps=False):
         self.n_columns = 1
         self.size = minterms[0].size + 1
         self.columns = [group_minterms(minterms)]
+        self.print_steps_flag = print_steps
+        if self.print_steps_flag: print(self)
+
+    def print_steps(self, bool=True):
+        self.print_steps_flag = bool
 
     def add_column(self, new_minterm_list):
         self.n_columns = self.n_columns + 1
         self.columns.append(group_minterms(new_minterm_list))
+        if self.print_steps_flag: print(self)
 
     def check_minterm(self, column_num):
         column = self.columns[column_num]
@@ -100,9 +104,7 @@ class implication_table:
                 for adj_term in column[i+1]:
                     dif = 0
                     dif_loc = 0
-                    print(f"term:{term} adj:{adj_term}")
                     for j in range(min_size):
-                        print(f"term j:{term.array[j]} adj j:{adj_term.array[j]}")
                         if term.array[j] != adj_term.array[j]:
                             if term.array[j] == '-' or adj_term.array[j] == '-':
                                 dif = 0
@@ -112,7 +114,6 @@ class implication_table:
                                 break
                             dif_loc = j
                     if dif == 1:
-                        print(f"adding dc to pos {dif_loc}")
                         new_minterms.append(term.add_dc(dif_loc))
                         term.reduced_flag = 1
                         adj_term.reduced_flag = 1
@@ -125,6 +126,8 @@ class implication_table:
         next_column = []
         done = 0
         column_num = 0
+        prime_imps = []
+        if self.print_steps_flag: print(self)
         while not done:
             next_column = self.check_minterm(column_num)
             if next_column == []:
@@ -136,25 +139,16 @@ class implication_table:
             for group in col:
                 for term in group:
                     if not term.reduced_flag:
-                        print(term)
+                        prime_imps.append(term)
     def __str__(self):
         table_str = ''
         for i, column in enumerate(self.columns):
             table_str = table_str + str(column) + "\n"
-        return table_str
+        return "Implication Table\n" + tabulate(self.columns, showindex=True, tablefmt="simple_grid") + "\n" # table_s
     
     def __repr__(self) -> str:
         return str(self)
 
-        
-
-
-# imp_table = implication_table(minterm_list)
-# return_list = imp_table.check_minterm(0)
-# print(return_list)
-# print(imp_table)
-# imp_table.minimize_table()
-# print(imp_table)
 
 def create_matrix(prime_imps, minterms):
     array = []
@@ -176,53 +170,96 @@ mins_list = [minterm(0, 3), minterm(2, 3), minterm(3,3), minterm(7, 3), minterm(
 primes_list = [minterm(['-', 1, 0], 3, 'arr'), minterm([0, '-', 0], 3, 'arr'), 
                minterm([0, 0, '-'], 3, 'arr'), minterm([1, 1, '-'], 3, 'arr')]
 
-print(create_matrix(primes_list, mins_list))
+
+
+# impl_table = implication_table(mins_list)
+# impl_table.print_steps()
+# impl_table.minimize_table()
 
 
 class min_cover_matrix:
-    def __init__(self, prime_imps, minterms):
+    def __init__(self, prime_imps, minterms, print_steps=False):
         self.num_cols = len(prime_imps)
         self.num_rows = len(minterms)
         self.matrix = create_matrix(prime_imps, minterms)
         self.essential_primes = []
+        self.primes = prime_imps[:]
+        self.mins = minterms[:]
         self.empty = 0
+        self.print_steps_flag = print_steps
+        if self.print_steps_flag: print(self)
 
     def remove_row(self, index):
         self.matrix.pop(index)
+        self.mins.pop(index)
         self.num_rows = self.num_rows - 1
         if self.num_rows == 0:
             self.empty = 1
+        if self.print_steps_flag: print(self)
+    
+    def print_steps(self, bool=True):
+        self.print_steps_flag=bool
     
     def remove_column(self, index):
         for i in range(self.num_rows):
             self.matrix[i].pop(index)
+        self.primes.pop(index)
         self.num_cols = self.num_cols - 1
         if self.num_cols == 0:
             self.empty = 1
+        if self.print_steps_flag: print(self)
+    
+    def find_essential_primes(self):
+        times_covered = 0
+        return_val = 0
+        prime_index = 0
+        min_index = 0
+        j = 0
+        if self.print_steps_flag: print(self)
+        while j < self.num_rows:
+            times_covered = 0
+            row = self.matrix[j]
+            for i, col in enumerate(row):
+                if col == 1:
+                    times_covered = times_covered + 1
+                    prime_index = i
+                    min_index = j
+            if times_covered == 1:
+                return_val = return_val + 1
+                offset = self.add_prime(prime_index)
+
+                j = j - offset
+            j = j + 1
+
+    def add_prime(self, index):
+        self.essential_primes.append(self.primes[index])
+        i = 0
+        rows_removed = 0
+        while i < self.num_rows:
+            if self.matrix[i][index] == 1:
+                self.remove_row(i)
+                rows_removed = rows_removed + 1
+                i = i - 1
+            i = i + 1
+        self.remove_column(index)
+        return rows_removed
+    
+    def eliminate_dom_rows(self):
+        pass
+
+    def eliminate_non_dom_cols(self):
+        pass
+
 
     def __str__(self):
-        matrix_str = ''
-        for row in self.matrix:
-            
-            for element in row:
-                if element == '':
-                    matrix_str = matrix_str + '_'
-                else:
-                    matrix_str = matrix_str + '1'
-                matrix_str = matrix_str + ' '
-            matrix_str = matrix_str + "\n"
-        return matrix_str
+        return "Minimum Cover Matrix\n" + tabulate(self.matrix, headers=self.primes, showindex=self.mins, tablefmt="simple_grid") + "\n"
 
 test_mat = min_cover_matrix(primes_list, mins_list)
-print(test_mat)
-test_mat.remove_row(0)
-print(test_mat)
-test_mat.remove_row(0)
-print(test_mat)
-test_mat.remove_row(0)
-print(test_mat)
-test_mat.remove_row(0)
-print(test_mat)
+test_mat.print_steps()
+
+test_mat.find_essential_primes()
+# print(test_mat)
+# print(test_mat.essential_primes)
 
 
 
