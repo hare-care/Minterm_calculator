@@ -105,6 +105,7 @@ class implication_table:
                         print(f"term j:{term.array[j]} adj j:{adj_term.array[j]}")
                         if term.array[j] != adj_term.array[j]:
                             if term.array[j] == '-' or adj_term.array[j] == '-':
+                                dif = 0
                                 break
                             dif = dif + 1
                             if dif_loc > 1:
