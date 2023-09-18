@@ -273,7 +273,33 @@ class min_cover_matrix:
             i = i + 1
 
     def eliminate_non_dom_cols(self):
-        pass
+        i = 0
+        i_dominances = 0
+        j_dominances = 0
+        if self.num_cols == 1: return
+        while i < self.num_cols:
+            j = i + 1
+            while j < self.num_cols:
+                i_dominances = 0
+                j_dominances = 0
+                for k in range(self.num_rows):
+                    row_i = self.matrix[k][i]
+                    row_j = self.matrix[k][j]
+                    if row_j != row_i:
+                        if row_j == 1:
+                            j_dominances = j_dominances + 1
+                        else:
+                            i_dominances = i_dominances + 1
+                if j_dominances > 0 and i_dominances == 0:
+                    self.remove_column(i)
+                    break
+                elif i_dominances > 0 and j_dominances == 0:
+                    self.remove_column(j)
+                    j = j - 1
+                j = j + 1
+            i = i + 1
+
+
 
 
     def __str__(self):
@@ -289,10 +315,8 @@ row_mins = [minterm(0, 3), minterm(1,3), minterm(2,3)]
 test_row_dom = min_cover_matrix(row_primes, row_mins)
 test_row_dom.print_steps()
 print(test_row_dom)
-test_row_dom.eliminate_dom_rows()
+test_row_dom.eliminate_non_dom_cols()
 
-# print(test_mat)
-# print(test_mat.essential_primes)
 
 
 
