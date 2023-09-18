@@ -245,7 +245,32 @@ class min_cover_matrix:
         return rows_removed
     
     def eliminate_dom_rows(self):
-        pass
+        i = 0
+        i_dominances = 0
+        j_dominances = 0
+        if self.num_rows == 1: return
+        while i < self.num_rows:
+            row_i = self.matrix[i]
+            j = i + 1
+            while j < self.num_rows:
+                row_j = self.matrix[j]
+                i_dominances = 0
+                j_dominances = 0
+                for k,col_i in enumerate(row_i):
+                    col_j = row_j[k]
+                    if col_i != col_j:
+                        if col_j == 1:
+                            j_dominances = j_dominances + 1
+                        else:
+                            i_dominances = i_dominances + 1
+                if j_dominances > 0 and i_dominances == 0:
+                    self.remove_row(j)
+                    j = j - 1
+                elif i_dominances > 0 and j_dominances == 0:
+                    self.remove_row(i)
+                    break
+                j = j + 1
+            i = i + 1
 
     def eliminate_non_dom_cols(self):
         pass
@@ -254,10 +279,18 @@ class min_cover_matrix:
     def __str__(self):
         return "Minimum Cover Matrix\n" + tabulate(self.matrix, headers=self.primes, showindex=self.mins, tablefmt="simple_grid") + "\n"
 
-test_mat = min_cover_matrix(primes_list, mins_list)
-test_mat.print_steps()
+# test_mat = min_cover_matrix(primes_list, mins_list)
+# test_mat.print_steps()
 
-test_mat.find_essential_primes()
+# test_mat.find_essential_primes()
+
+row_primes = [minterm(['-','-', 0], 3, 'arr'), minterm([1,0,'-'], 3, 'arr'), minterm(['-',1,0], 3, 'arr')]
+row_mins = [minterm(0, 3), minterm(1,3), minterm(2,3)]
+test_row_dom = min_cover_matrix(row_primes, row_mins)
+test_row_dom.print_steps()
+print(test_row_dom)
+test_row_dom.eliminate_dom_rows()
+
 # print(test_mat)
 # print(test_mat.essential_primes)
 
