@@ -60,6 +60,19 @@ class minterm:
     def __repr__(self):
         return str(self)
 
+
+def create_minterm_list(number_list, size):
+    min_list = []
+    for number in number_list:
+        min_list.append(minterm(number, size))
+    return min_list
+
+def create_primes_list(primes_list, size):
+    prime_list = []
+    for prime in primes_list:
+        prime_list.append(minterm(prime, size, 'arr'))
+    return prime_list
+
 def group_minterms(minterms):
     """Sort minterms into groups by number of ones in the minterms"""
     size = minterms[0].size
@@ -186,6 +199,7 @@ class min_cover_matrix:
         self.primes = prime_imps[:]
         self.mins = minterms[:]
         self.empty = 0
+        self.no_operation_cnt = 0
         self.print_steps_flag = print_steps
         if self.print_steps_flag: print(self)
 
@@ -193,6 +207,7 @@ class min_cover_matrix:
         self.matrix.pop(index)
         self.mins.pop(index)
         self.num_rows = self.num_rows - 1
+        self.no_operation_cnt = 0
         if self.num_rows == 0:
             self.empty = 1
         if self.print_steps_flag: print(self)
@@ -205,6 +220,7 @@ class min_cover_matrix:
             self.matrix[i].pop(index)
         self.primes.pop(index)
         self.num_cols = self.num_cols - 1
+        self.no_operation_cnt = 0
         if self.num_cols == 0:
             self.empty = 1
         if self.print_steps_flag: print(self)
@@ -216,6 +232,7 @@ class min_cover_matrix:
         min_index = 0
         j = 0
         if self.print_steps_flag: print(self)
+        if self.empty: return
         while j < self.num_rows:
             times_covered = 0
             row = self.matrix[j]
@@ -229,6 +246,7 @@ class min_cover_matrix:
                 offset = self.add_prime(prime_index)
 
                 j = j - offset
+                if j < 0: j = -1
             j = j + 1
 
     def add_prime(self, index):
@@ -299,6 +317,19 @@ class min_cover_matrix:
                 j = j + 1
             i = i + 1
 
+    def minimize_matrix(self):
+        while self.no_operation_cnt < 3:
+            self.no_operation_cnt = self.no_operation_cnt + 1
+            self.find_essential_primes()
+            self.eliminate_dom_rows()
+            self.eliminate_non_dom_cols()
+        if self.empty:
+            print("good job")
+            print(self.essential_primes)
+        else:
+            print("cyclic core")
+            print(self.essential_primes)
+            print(self.matrix)
 
 
 
@@ -312,10 +343,11 @@ class min_cover_matrix:
 
 row_primes = [minterm(['-','-', 0], 3, 'arr'), minterm([1,0,'-'], 3, 'arr'), minterm(['-',1,0], 3, 'arr')]
 row_mins = [minterm(0, 3), minterm(1,3), minterm(2,3)]
+
+
 test_row_dom = min_cover_matrix(row_primes, row_mins)
-test_row_dom.print_steps()
-print(test_row_dom)
-test_row_dom.eliminate_non_dom_cols()
+# test_row_dom.print_steps()
+test_row_dom.minimize_matrix()
 
 
 
