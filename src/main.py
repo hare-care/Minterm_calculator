@@ -1,5 +1,5 @@
 from tabulate import tabulate
-
+import sys
 
 def num_to_bin_array(num, size):
     """Return an array corresponding to the binary representation of a number.
@@ -29,11 +29,13 @@ def scan_num_ones(array):
             count = count + 1
     return count
 
-
-
-
 # minterm object
 class minterm:
+    """Minterm object which can be initialized with either a number or array.
+    Represents a minimum term in a Boolean ALgebra Equation.
+    Default initializtion is as a number, to initialize it as an array, add 'arr' as an argument.
+    Don't Cares are represented using '-', true is 1, false is 0
+    """
     def __init__(self, minterm_num, size, init_type = 'num'):
         self.size = size
         if init_type == 'num':
@@ -56,18 +58,18 @@ class minterm:
             min_str = min_str + str(self.array[i])
         return min_str
     
-
     def __repr__(self):
         return str(self)
 
-
 def create_minterm_list(number_list, size):
+    """Creates a list of minterm objects of the same size using a list of numbers"""
     min_list = []
     for number in number_list:
         min_list.append(minterm(number, size))
     return min_list
 
 def create_primes_list(primes_list, size):
+    """Creates a list of minterm objects of the same size using a list of arrays"""
     prime_list = []
     for prime in primes_list:
         prime_list.append(minterm(prime, size, 'arr'))
@@ -86,13 +88,12 @@ def group_minterms(minterms):
         array[group].append(term)
     return array
 
-
-minterm_list = [minterm(0,4), minterm(4,4), minterm(5,4), minterm(6,4), 
-                minterm(7,4), minterm(8,4), minterm(9,4), minterm(10,4), 
-                minterm(13,4), minterm(15,4)]
-
 # implication table object
 class implication_table:
+    """Implication Table Object initialized using a list of minterm objects. 
+    Implication table main function is to find the prime implicants in the Boolean Equation.
+    The method minimize_table will return the prime implicants in the table.
+    """
     def __init__(self, minterms, print_steps=False):
         self.n_columns = 1
         self.size = minterms[0].size + 1
@@ -153,6 +154,7 @@ class implication_table:
                 for term in group:
                     if not term.reduced_flag:
                         prime_imps.append(term)
+        return prime_imps
     def __str__(self):
         table_str = ''
         for i, column in enumerate(self.columns):
@@ -161,7 +163,6 @@ class implication_table:
     
     def __repr__(self) -> str:
         return str(self)
-
 
 def create_matrix(prime_imps, minterms):
     array = []
@@ -178,17 +179,6 @@ def create_matrix(prime_imps, minterms):
             else:
                 array[i].append('')
     return array
-
-mins_list = [minterm(0, 3), minterm(2, 3), minterm(3,3), minterm(7, 3), minterm(4, 3)]
-primes_list = [minterm(['-', 1, 0], 3, 'arr'), minterm([0, '-', 0], 3, 'arr'), 
-               minterm([0, 0, '-'], 3, 'arr'), minterm([1, 1, '-'], 3, 'arr')]
-
-
-
-# impl_table = implication_table(mins_list)
-# impl_table.print_steps()
-# impl_table.minimize_table()
-
 
 class min_cover_matrix:
     def __init__(self, prime_imps, minterms, print_steps=False):
@@ -318,7 +308,7 @@ class min_cover_matrix:
             i = i + 1
 
     def minimize_matrix(self):
-        while self.no_operation_cnt < 3:
+        while self.no_operation_cnt < 1:
             self.no_operation_cnt = self.no_operation_cnt + 1
             self.find_essential_primes()
             self.eliminate_dom_rows()
@@ -329,25 +319,61 @@ class min_cover_matrix:
         else:
             print("cyclic core")
             print(self.essential_primes)
-            print(self.matrix)
-
-
+            print(self)
 
     def __str__(self):
         return "Minimum Cover Matrix\n" + tabulate(self.matrix, headers=self.primes, showindex=self.mins, tablefmt="simple_grid") + "\n"
 
+
+# print testing
+
+# implication table testing
+
+# min cover matrix testing
+
+
+
+# mins_list = [minterm(0, 3), minterm(2, 3), minterm(3,3), minterm(7, 3), minterm(4, 3)]
+# primes_list = [minterm(['-', 1, 0], 3, 'arr'), minterm([0, '-', 0], 3, 'arr'), 
+#                minterm([0, 0, '-'], 3, 'arr'), minterm([1, 1, '-'], 3, 'arr')]
+
+# row_primes = [minterm(['-','-', 0], 3, 'arr'), minterm([1,0,'-'], 3, 'arr'), minterm(['-',1,0], 3, 'arr')]
+# row_mins = [minterm(0, 3), minterm(1,3), minterm(2,3)]
+
+
+# test_row_dom = min_cover_matrix(row_primes, row_mins)
+# # test_row_dom.print_steps()
+# test_row_dom.minimize_matrix()
+
 # test_mat = min_cover_matrix(primes_list, mins_list)
-# test_mat.print_steps()
+# # test_mat.print_steps()
+# test_mat.minimize_matrix()
 
-# test_mat.find_essential_primes()
+if __name__ == "__main__":
+    input_file_path = sys.argv[1]
+    print_debug = 0
+    if len(sys.argv) > 2:
+        print_debug = int(sys.argv[2])
 
-row_primes = [minterm(['-','-', 0], 3, 'arr'), minterm([1,0,'-'], 3, 'arr'), minterm(['-',1,0], 3, 'arr')]
-row_mins = [minterm(0, 3), minterm(1,3), minterm(2,3)]
+    f = open(input_file_path, 'r')
+    for line in f: number_array = line.split()
+    f.close()
+    for i,num in enumerate(number_array):
+        number_array[i] = int(num)
+    minterm_list = create_minterm_list(number_array, 3)
+    impl_table = implication_table(minterm_list, print_steps = print_debug)
+    prime_list = impl_table.minimize_table()
+    min_matrix = min_cover_matrix(prime_list, minterm_list, print_steps= print_debug)
+    min_matrix.minimize_matrix()
 
 
-test_row_dom = min_cover_matrix(row_primes, row_mins)
-# test_row_dom.print_steps()
-test_row_dom.minimize_matrix()
+
+
+
+
+    
+
+    
 
 
 
