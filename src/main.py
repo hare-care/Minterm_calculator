@@ -364,7 +364,21 @@ if __name__ == "__main__":
     impl_table = implication_table(minterm_list, print_steps = print_debug)
     prime_list = impl_table.minimize_table()
     min_matrix = min_cover_matrix(prime_list, minterm_list, print_steps= print_debug)
-    min_matrix.minimize_matrix()
+    primes_success = min_matrix.minimize_matrix()
+    f = open("../output.txt", 'w')
+    ## debugging purposes
+    if primes_success:
+        f.write("run was a success\n")
+    else:
+        f.write("run was not a success\n")
+    ##
+    for prime in min_matrix.essential_primes:
+        f.write(str(prime))
+        f.write(" ")
+    f.close()
+
+
+
 
 
 
