@@ -1,6 +1,7 @@
 from tabulate import tabulate
 import sys
 import argparse
+import math
 
 
 # Argument parser
@@ -331,6 +332,9 @@ class min_cover_matrix:
             print(self.essential_primes)
             print(self)
 
+    def init_branch_bound(Self):
+        pass
+
     def __str__(self):
         return "Minimum Cover Matrix\n" + tabulate(self.matrix, headers=self.primes, showindex=self.mins, tablefmt="simple_grid") + "\n"
 
@@ -364,25 +368,32 @@ if __name__ == "__main__":
     help_string = """To run this calculator you must provide at least one file which includes the desired minterms"""
     args = parser.parse_args()
     print_debug = args.p
-    print(args)
+    largest = 0
+    # if input flag is toggled, request input from user
     if args.i:
         num_minterms = int(input("Type the number of minterms: "))
         number_array = []
-        for i in range(num_minterms):
+        for i in range(num_minterms):    
             num = int(input("Type in the minterm: "))
             number_array.append(num)
+            if num > largest:
+                largest = num
+    # if file flag is toggled, read from the specified file
     elif args.file:
-        print("file time")
-        print(args.file)
+        print(f"Reading from file {args.file}")
         input_file_path = args.file
         f = open(input_file_path, 'r')
         for line in f: number_array = line.split()
         f.close()
         for i,num in enumerate(number_array):
             number_array[i] = int(num)
-
+            if int(num) > largest:
+                largest = int(num)
     
-    minterm_list = create_minterm_list(number_array, 3)
+    # calculate the number of bits in the term now
+    size = math.ceil(math.log2(largest+1))
+
+    minterm_list = create_minterm_list(number_array, size)
     impl_table = implication_table(minterm_list, print_steps = print_debug)
     prime_list = impl_table.minimize_table()
     min_matrix = min_cover_matrix(prime_list, minterm_list, print_steps= print_debug)
