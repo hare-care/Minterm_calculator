@@ -1,5 +1,15 @@
 from tabulate import tabulate
 import sys
+import argparse
+
+
+# Argument parser
+parser = argparse.ArgumentParser(description='Minterm Calculator')
+parser.add_argument('-file','-f', type=str, help='file that includes minterms')
+parser.add_argument('-p', '-print', '-debug', action='store_true', help='this flag will cause all steps to be printed')
+parser.add_argument('-i', help='the program will prompt the user for minterms', action='store_true')
+
+
 
 def num_to_bin_array(num, size):
     """Return an array corresponding to the binary representation of a number.
@@ -350,16 +360,28 @@ class min_cover_matrix:
 # test_mat.minimize_matrix()
 
 if __name__ == "__main__":
-    input_file_path = sys.argv[1]
-    print_debug = 0
-    if len(sys.argv) > 2:
-        print_debug = int(sys.argv[2])
 
-    f = open(input_file_path, 'r')
-    for line in f: number_array = line.split()
-    f.close()
-    for i,num in enumerate(number_array):
-        number_array[i] = int(num)
+    help_string = """To run this calculator you must provide at least one file which includes the desired minterms"""
+    args = parser.parse_args()
+    print_debug = args.p
+    print(args)
+    if args.i:
+        num_minterms = int(input("Type the number of minterms: "))
+        number_array = []
+        for i in range(num_minterms):
+            num = int(input("Type in the minterm: "))
+            number_array.append(num)
+    elif args.file:
+        print("file time")
+        print(args.file)
+        input_file_path = args.file
+        f = open(input_file_path, 'r')
+        for line in f: number_array = line.split()
+        f.close()
+        for i,num in enumerate(number_array):
+            number_array[i] = int(num)
+
+    
     minterm_list = create_minterm_list(number_array, 3)
     impl_table = implication_table(minterm_list, print_steps = print_debug)
     prime_list = impl_table.minimize_table()
